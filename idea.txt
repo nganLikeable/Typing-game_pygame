@@ -1,0 +1,3 @@
+cat moving from left to right in the beginning, then start :)))
+tab for restart 
+turn typed letters into dots

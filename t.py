@@ -7,9 +7,14 @@ pygame.init()
 pygame.font.init()
 
 # Screen size
-HEIGHT = 800
-WIDTH = 1200
+HEIGHT = 600
+WIDTH = 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT)) # tuple
+
+# Colors
+CUSTARD = (243, 171, 46)
+GRAY = (100, 100, 100)
+BACKGROUND_COLOR = (32, 32, 32)
 
 # Screen caption + icon
 pygame.display.set_caption("Typing")
@@ -17,7 +22,7 @@ icon = pygame.image.load('cartoon.jpg')
 pygame.display.set_icon(icon)
 
 # font
-font = pygame.font.SysFont("Somic Sans MS", 50)
+font = pygame.font.SysFont("Comic Sans MS", 50)
 
 
 # Clock object
@@ -25,7 +30,7 @@ clock = pygame.time.Clock()
 start_ticks = pygame.time.get_ticks()
 
 def draw_background():
-    pygame.draw.rect(screen, (243, 171, 46), (0, HEIGHT - 100, WIDTH, 100), 0 ) #(x, y, width, height)
+    pygame.draw.rect(screen, CUSTARD, (0, HEIGHT - 100, WIDTH, 100), 0 ) #(x, y, width, height)
 
 def draw_countdown(countdown_time):
     seconds_passed = (pygame.time.get_ticks() - start_ticks)//1000 # in milliseconds
@@ -34,11 +39,16 @@ def draw_countdown(countdown_time):
         # display on screen
     if time_left > 0:
         mins_left, seconds_left = divmod(time_left, 60)
-        countdown_surface = font.render(f'{mins_left:02d}:{seconds_left:02d}', True, (243, 171, 46))  # returns the quotient and remainder
+        countdown_surface = font.render(f'{mins_left:02d}:{seconds_left:02d}', True, CUSTARD)  # returns the quotient and remainder
     else:
-        countdown_surface = font.render(f"Boom!", True, (243, 171, 46))
+        countdown_surface = font.render(f"Boom!", True, CUSTARD)
         
     screen.blit(countdown_surface , (20,20))
+
+def display_score():
+    score = 0 
+    score_surface = font.render(f'{score}', True, CUSTARD)
+    screen.blit(score_surface , (120,20))
 
 
 
@@ -68,8 +78,10 @@ def run():
 
         draw_background()
         draw_countdown(countdown_time)
-        word = get_word("words.txt")
-        display_word = font.render(word, True, (243, 171, 46))
+        display_score()
+        #word = get_word("words.txt")
+        word = "Ngan"
+        display_word = font.render(word, True, CUSTARD)
         screen.blit(display_word, (WIDTH/2, HEIGHT/2))
 
         pygame.display.update()  
@@ -79,10 +91,8 @@ def run():
                 exit()
             
             if event.type == pygame.KEYDOWN:
-                if chr(event.key) == word[0]:
-                    word = remove_head(word)
-                    if is_empty(word):
-                        word = get_word("words.txt")
+                pass
+                    
 
 
 run()
