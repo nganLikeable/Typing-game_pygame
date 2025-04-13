@@ -18,7 +18,7 @@ class TypingGame:
 
         self.clock = pygame.time.Clock()
         self.start = pygame.time.get_ticks()
-        self.duration = 60
+        self.duration = 10
         
         # colors
         self.BACKGROUND_COLOR = (32,32,32)
@@ -43,11 +43,9 @@ class TypingGame:
         if time_left > 0:
             mins_left, secs_left = divmod(time_left, 60)
             timer_surface = self.font.render(f'{mins_left:02d}:{secs_left:02d}', True, self.BACKGROUND_COLOR)
-        else:
-            timer_surface = self.font.render("Kaboom", True, self.CUSTARD)
         
-        timer_rect = timer_surface.get_rect(bottomleft=(20, self.HEIGHT - 20))
-        self.screen.blit(timer_surface, timer_rect)
+            timer_rect = timer_surface.get_rect(bottomleft=(20, self.HEIGHT - 20))
+            self.screen.blit(timer_surface, timer_rect)
     
     def display_score(self):
         score_surface = self.font.render(f'Score: {self.score}', True, self.BACKGROUND_COLOR)
@@ -103,6 +101,9 @@ class TypingGame:
                         (self.HEIGHT - wpm_sur.get_height())//2)
         self.screen.blit(wpm_sur, sur_center)
     
+    # def game_over(self):
+        
+    
     
     def run(self):
         lst = self.read_file("words.txt")
@@ -119,13 +120,19 @@ class TypingGame:
             self.display_word(word, untyped_word)
             
             pygame.display.update()
+            self.clock.tick(60)
 
-            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     exit()
-                 
-                if event.type == pygame.KEYDOWN:                    
+                    
+                if event.type == pygame.KEYDOWN: 
+                    # if Tab is pressed => skip word
+                    if event.key == pygame.K_TAB:
+                        word = self.get_word(lst)
+                        untyped_word = word 
+                        continue
+                                           
                     # if there's sth to type and the char is correct
                     if untyped_word and event.unicode == untyped_word[0]:
                         self.total_char += 1
