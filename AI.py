@@ -1,9 +1,6 @@
 import pygame
 from sys import exit 
 import random 
-from Button import Button 
-from pygame import mixer
-
 
 class TypingGame:
     def __init__ (self):
@@ -18,7 +15,6 @@ class TypingGame:
         pygame.font.init()
         self.font = pygame.font.SysFont("Comic Sans MS", 50)
 
-
         self.clock = pygame.time.Clock()
         self.start = pygame.time.get_ticks()
         self.duration = 10
@@ -29,39 +25,16 @@ class TypingGame:
         self.GRAY = (100, 100, 100)
 
         pygame.init()
+        
         pygame.display.set_caption("CatType")
         self.icon = pygame.image.load('cat.jpg')
         pygame.display.set_icon(self.icon)
-        
-        # play bg music
-        mixer.init()
-        mixer.music.load('meow.mp3')
-        mixer.music.play()
-        
-        # buttons
-        self.start_button = Button('start_button.png', 400, 200, 0.5)
-        self.exit_button = Button('exit_button.png', 400, 300, 0.5)
         
         self.clock = pygame.time.Clock()
     
     def draw_background(self):
         pygame.draw.rect(self.screen, self.CUSTARD, (0, self.HEIGHT - 100, self.WIDTH, 100), 0) # (x, y, width, height)
     
-    def draw_text(self, text, font_name, size, pos: tuple, color, align = 'center', is_bold= False):
-        text_font = pygame.font.SysFont(font_name, size, bold = is_bold)
-        text_sur = text_font.render(text, True, color) 
-        rect = text_sur.get_rect()
-        
-        if align == 'center':
-            rect.center = pos 
-        elif align == 'topleft':
-            rect.topleft = pos 
-        elif align == 'bottomleft':
-            rect.bottomleft = pos 
-        
-        self.screen.blit(text_sur, rect)
-        
-        
     def display_timer(self):
         seconds_passed = (pygame.time.get_ticks() - self.start) // 1000
         time_left = self.duration - seconds_passed
@@ -72,7 +45,6 @@ class TypingGame:
         
             timer_rect = timer_surface.get_rect(bottomleft=(20, self.HEIGHT - 20))
             self.screen.blit(timer_surface, timer_rect)
-        
         else:
             self.running = False
     
@@ -81,39 +53,31 @@ class TypingGame:
         score_rect = score_surface.get_rect(bottomleft=(self.WIDTH - 250, self.HEIGHT - 20))  
         self.screen.blit(score_surface, score_rect)
     
-    # display entire word + typed word (blurry and plain colors)
     def display_word(self, full_word, untyped_pt):
         typed_length = len(full_word) - len(untyped_pt)
         typed_pt = full_word[:typed_length]
         
-        # render each part in its according color 
         typed_sur = self.font.render(typed_pt, True, self.CUSTARD)
         untyped_sur = self.font.render(untyped_pt, True,((165, 165, 165)))
         
-        # get the total width for the display, so that 2 elements align perfectly
         typed_width = typed_sur.get_width()
         untyped_width = untyped_sur.get_width()
         total_width = typed_width + untyped_width 
         
-        # the x-coor to begin drawing full word
         x_start = (self.WIDTH - total_width)//2
         y = (self.HEIGHT - typed_sur.get_height())//2
         
-        # blit both 
         self.screen.blit(typed_sur, (x_start, y))
         self.screen.blit(untyped_sur, (x_start + typed_width, y))
         
-    
     def read_file(self, filename):
         with open (filename) as f:
             wordList = [word.strip() for word in f]
         return wordList
 
-    # return a random word from the wordlist
     def get_word(self, lst):
         return lst[random.randint(0, len(lst) - 1)]
     
-    # remove the typed letter
     def remove_typed(self, word):
         return word[1:]
     
@@ -128,25 +92,62 @@ class TypingGame:
                         (self.HEIGHT - wpm_sur.get_height())//2)
         self.screen.blit(wpm_sur, sur_center)
     
-    def display_menu(self):
-        self.draw_text('PawPrints', "Courier New",  50, (400, 100), self.CUSTARD, "center", True)
-        self.start_button.draw(self.screen)
-        self.exit_button.draw(self.screen)
-        pygame.display.set_caption('Menu')
+    def draw_button(self, text, x, y, width, height, color, hover_color):
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+        
+        if x + width > mouse[0] > x and y + height > mouse[1] > y:
+            pygame.draw.rect(self.screen, hover_color, (x, y, width, height))
+            if click[0] == 1:
+                return True
+        else:
+            pygame.draw.rect(self.screen, color, (x, y, width, height))
+        
+        button_text = self.font.render(text, True, self.BACKGROUND_COLOR)
+        button_rect = button_text.get_rect(center=(x + width // 2, y + height // 2))
+        self.screen.blit(button_text, button_rect)
+        
+        return False
     
-    def play(self):
+    def game_over(self):
+        self.screen.fill(self.BACKGROUND_COLOR)
+        self.display_wpm()
+        game_over_surface = self.font.render('Game Over', True, self.CUSTARD)
+        game_over_rect = game_over_surface.get_rect(center=(self.WIDTH//2, self.HEIGHT//2 - 50))
+        self.screen.blit(game_over_surface, game_over_rect)
+        pygame.display.update()
+        
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    exit()
+            
+            if self.draw_button('Restart', self.WIDTH//2 - 100, self.HEIGHT//2 + 50, 200, 50, self.CUSTARD, self.GRAY):
+                self.reset_game()
+                return
+            
+            pygame.display.update()
+    
+    def reset_game(self):
+        self.score = 0
+        self.wpm = 0
+        self.total_char = 0
+        self.start = pygame.time.get_ticks()
+        self.running = True
+        self.run()
+    
+    def run(self):
         lst = self.read_file("words.txt")
         word = self.get_word(lst)
         untyped_word = word
 
         while self.running:
-            # clear the screen after each display/loop
             self.screen.fill(self.BACKGROUND_COLOR)
             self.draw_background()
             self.display_timer()
             self.display_score() 
-            
             self.display_word(word, untyped_word)
+            
             pygame.display.update()
             self.clock.tick(60)
 
@@ -155,38 +156,20 @@ class TypingGame:
                     exit()
                     
                 if event.type == pygame.KEYDOWN: 
-                    # if Tab is pressed => skip word
                     if event.key == pygame.K_TAB:
                         word = self.get_word(lst)
                         untyped_word = word 
                         continue
                                            
-                    # if there's sth to type and the char is correct
                     if untyped_word and event.unicode == untyped_word[0]:
                         self.total_char += 1
                         untyped_word = self.remove_typed(untyped_word)
                         
-
                         if self.is_empty(untyped_word):
                             self.score += 1 
-                            # reinitialize a new word 
                             word = self.get_word(lst)
                             untyped_word = word
-                    
-    def run(self):
-        while self.running:
-            self.screen.fill(self.BACKGROUND_COLOR)
-            self.display_menu()
-            pygame.display.update()
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    exit()
-            
-            if self.start_button.is_pressed():
-                self.play()
-            elif self.exit_button.is_pressed():
-                exit()
-
+        
+        self.game_over()
 
 TypingGame().run()

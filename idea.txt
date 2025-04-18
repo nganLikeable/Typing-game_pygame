@@ -1,3 +1,5 @@
 cat moving from left to right in the beginning, then start :)))
 tab for restart 
 turn typed letters into dots
+
+takes wrong characters as well, make it red but not count the word to COUNT 
