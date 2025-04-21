@@ -1,9 +1,30 @@
 import pygame
-from sys import exit 
 import random 
-from Button import Button 
+import math 
 from pygame import mixer
+from sys import exit 
 
+from button import Button 
+from cat_sprite import CatSprite
+from word import Word 
+
+cat_images = ['cat_img\cat1.png',
+              'cat_img\cat2.png', 
+              'cat_img\cat3.png',
+              'cat_img\cat4.jpg',
+              'cat_img\cat5.jpg']
+
+
+def read_file(filename):
+    with open (filename) as f:
+        wordList = [word.strip() for word in f]
+    return wordList
+
+# return a random word from the wordlist
+def get_word(lst):
+    return lst[random.randint(0, len(lst) - 1)]
+
+wordList = read_file('words.txt')
 
 class TypingGame:
     def __init__ (self):
@@ -21,7 +42,7 @@ class TypingGame:
 
         self.clock = pygame.time.Clock()
         self.start = pygame.time.get_ticks()
-        self.duration = 10
+        self.duration = 60
         
         # colors
         self.BACKGROUND_COLOR = (32,32,32)
@@ -29,23 +50,44 @@ class TypingGame:
         self.GRAY = (100, 100, 100)
 
         pygame.init()
-        pygame.display.set_caption("CatType")
+        pygame.display.set_caption("Menu")
         self.icon = pygame.image.load('cat.jpg')
         pygame.display.set_icon(self.icon)
         
         # play bg music
         mixer.init()
         mixer.music.load('meow.mp3')
-        mixer.music.play()
+        mixer.music.play(-1) # to loop music infinitely
+        
+        # typing sound
+        self.button_sound = pygame.mixer.Sound("press_button.mp3")
         
         # buttons
-        self.start_button = Button('start_button.png', 400, 200, 0.5)
-        self.exit_button = Button('exit_button.png', 400, 300, 0.5)
+        self.start_button = Button('start_button.png', 400, 300, 0.5)
+        self.exit_button = Button('exit_button.png', 400, 400, 0.5)
         
-        self.clock = pygame.time.Clock()
+        self.scroll = 0
+        self.cat_bg = pygame.image.load('cat_img\\cats.png').convert_alpha()
+        self.cat_bg_width = self.cat_bg.get_width()
+        self.cat_bg_rect = self.cat_bg.get_rect()
     
+    # cre: https://github.com/russs123/pygame_tutorials/blob/main/Infinite_Background/scroll_tut.py 
+    def draw_cat(self):
+        # calculate the number of images to fill in the screen
+        tiles = math.ceil(self.WIDTH / self.cat_bg_width) + 1
+
+        for i in range(tiles):
+            self.screen.blit(self.cat_bg, (i*self.cat_bg_width + self.scroll, self.HEIGHT - self.cat_bg.get_height()))
+        
+        self.scroll -= 1
+
+        # reset
+        if abs(self.scroll) > self.cat_bg_width:
+            self.scroll = 0
+        
+                        
     def draw_background(self):
-        pygame.draw.rect(self.screen, self.CUSTARD, (0, self.HEIGHT - 100, self.WIDTH, 100), 0) # (x, y, width, height)
+        pygame.draw.rect(self.screen, self.CUSTARD, (0, self.HEIGHT - 100, self.WIDTH, 100), 0) # (x, y, width, height) 
     
     def draw_text(self, text, font_name, size, pos: tuple, color, align = 'center', is_bold= False):
         text_font = pygame.font.SysFont(font_name, size, bold = is_bold)
@@ -60,7 +102,7 @@ class TypingGame:
             rect.bottomleft = pos 
         
         self.screen.blit(text_sur, rect)
-        
+    
         
     def display_timer(self):
         seconds_passed = (pygame.time.get_ticks() - self.start) // 1000
@@ -81,48 +123,8 @@ class TypingGame:
         score_rect = score_surface.get_rect(bottomleft=(self.WIDTH - 250, self.HEIGHT - 20))  
         self.screen.blit(score_surface, score_rect)
     
-    # display entire word + typed word (blurry and plain colors)
-    def display_word(self, full_word, untyped_pt):
-        typed_length = len(full_word) - len(untyped_pt)
-        typed_pt = full_word[:typed_length]
-        
-        # render each part in its according color 
-        typed_sur = self.font.render(typed_pt, True, self.CUSTARD)
-        untyped_sur = self.font.render(untyped_pt, True,((165, 165, 165)))
-        
-        # get the total width for the display, so that 2 elements align perfectly
-        typed_width = typed_sur.get_width()
-        untyped_width = untyped_sur.get_width()
-        total_width = typed_width + untyped_width 
-        
-        # the x-coor to begin drawing full word
-        x_start = (self.WIDTH - total_width)//2
-        y = (self.HEIGHT - typed_sur.get_height())//2
-        
-        # blit both 
-        self.screen.blit(typed_sur, (x_start, y))
-        self.screen.blit(untyped_sur, (x_start + typed_width, y))
-        
-    
-    def read_file(self, filename):
-        with open (filename) as f:
-            wordList = [word.strip() for word in f]
-        return wordList
-
-    # return a random word from the wordlist
-    def get_word(self, lst):
-        return lst[random.randint(0, len(lst) - 1)]
-    
-    # remove the typed letter
-    def remove_typed(self, word):
-        return word[1:]
-    
-    def is_empty(self, word):
-        return len(word) == 0
-    
     def display_wpm (self):
         self.wpm = int(self.total_char/5)/(self.duration/60)
-        
         wpm_sur = self.font.render(f'WPM: {self.wpm}', True, self.CUSTARD)
         sur_center = ((self.WIDTH - wpm_sur.get_width())//2,
                         (self.HEIGHT - wpm_sur.get_height())//2)
@@ -135,9 +137,13 @@ class TypingGame:
         pygame.display.set_caption('Menu')
     
     def play(self):
-        lst = self.read_file("words.txt")
-        word = self.get_word(lst)
-        untyped_word = word
+        # reset game state
+        self.running = True
+        self.start = pygame.time.get_ticks()
+        self.score = 0
+        self.total_char = 0
+        
+        word = Word(get_word(wordList), self.WIDTH, self.HEIGHT)
 
         while self.running:
             # clear the screen after each display/loop
@@ -146,7 +152,7 @@ class TypingGame:
             self.display_timer()
             self.display_score() 
             
-            self.display_word(word, untyped_word)
+            word.display_word(self.screen)
             pygame.display.update()
             self.clock.tick(60)
 
@@ -157,36 +163,44 @@ class TypingGame:
                 if event.type == pygame.KEYDOWN: 
                     # if Tab is pressed => skip word
                     if event.key == pygame.K_TAB:
-                        word = self.get_word(lst)
-                        untyped_word = word 
+                        word = Word(get_word(wordList), self.WIDTH, self.HEIGHT)
                         continue
                                            
                     # if there's sth to type and the char is correct
-                    if untyped_word and event.unicode == untyped_word[0]:
+                    if word.untyped and event.unicode == word.untyped[0]:
                         self.total_char += 1
-                        untyped_word = self.remove_typed(untyped_word)
+                        word.remove_typed()
                         
 
-                        if self.is_empty(untyped_word):
+                        if word.is_empty():
                             self.score += 1 
                             # reinitialize a new word 
-                            word = self.get_word(lst)
-                            untyped_word = word
-                    
+                            word = Word(get_word(wordList), self.WIDTH, self.HEIGHT)
+        self.screen.fill(self.BACKGROUND_COLOR)
+        self.display_wpm()
+        pygame.display.update()
+        pygame.time.delay(3000)
+        
+        
     def run(self):
         while self.running:
             self.screen.fill(self.BACKGROUND_COLOR)
+            self.draw_cat()
             self.display_menu()
             pygame.display.update()
+            
             
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     exit()
+                
             
             if self.start_button.is_pressed():
+                self.button_sound.play()
                 self.play()
             elif self.exit_button.is_pressed():
+                
                 exit()
-
-
-TypingGame().run()
+                
+if __name__ == '__main__':
+    TypingGame().run()

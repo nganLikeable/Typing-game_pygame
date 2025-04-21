@@ -3,3 +3,6 @@ tab for restart
 turn typed letters into dots
 
 takes wrong characters as well, make it red but not count the word to COUNT 
+
+if score > 50: happy meme,
+< 50: sad meme
