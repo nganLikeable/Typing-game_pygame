@@ -64,7 +64,7 @@ class TypingGame:
         
         # scrolling cat bg
         self.scroll = 0
-        self.cat_bg = pygame.image.load('cat_img\\cats.png').convert_alpha()
+        self.cat_bg = pygame.image.load('cats.png').convert_alpha()
         self.cat_bg_width = self.cat_bg.get_width()
         self.cat_bg_rect = self.cat_bg.get_rect()
     
@@ -126,11 +126,6 @@ class TypingGame:
     
     def calculate_wpm (self):
         self.wpm = int(self.total_char/5)/(self.duration/60)
-
-        # wpm_sur = self.font.render(f'WPM: {self.wpm}', True, self.CUSTARD)
-        # sur_center = ((self.WIDTH - wpm_sur.get_width())//2,
-        #                 (self.HEIGHT - wpm_sur.get_height())//3)
-        # self.screen.blit(wpm_sur, sur_center)
     
     def display_menu(self):
         self.draw_text('PawPrints', "Comic Sans",  80, (400, 100), self.CUSTARD, "center", True)
