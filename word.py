@@ -5,12 +5,10 @@ class Word:
     def __init__ (self, word, WIDTH, HEIGHT):
         self.word = word
         self.untyped = word
-        self.mistyped = ''
         pygame.font.init()
         self.font = pygame.font.SysFont('Comic Sans MS', 50)
         self.CUSTARD = (243, 171, 46)
         self.GRAY = (165,165,165)
-        self.RED = (235, 22, 22)
         self.WIDTH = WIDTH
         self.HEIGHT = HEIGHT
     
@@ -21,7 +19,7 @@ class Word:
         # render each part in its according color 
         typed_sur = self.font.render(typed_pt, True, self.CUSTARD)
         untyped_sur = self.font.render(self.untyped, True,self.GRAY)
-        mistyped_sur = self.font.render(self.mistyped, True, self.RED)
+        
         # get the total width for the display, so that 2 elements align perfectly
         typed_width = typed_sur.get_width()
         untyped_width = untyped_sur.get_width()
@@ -34,7 +32,7 @@ class Word:
         # blit both 
         screen.blit(typed_sur, (x_start, y))
         screen.blit(untyped_sur, (x_start + typed_width, y))
-        screen.blit(mistyped_sur, ())
+        
     
     # remove the typed letter
     def remove_typed(self):
