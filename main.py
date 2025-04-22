@@ -169,6 +169,7 @@ class TypingGame:
             
             elif state == 'play':
                 self.screen.fill(self.BACKGROUND_COLOR)
+                pygame.display.set_caption("Play")
                 self.draw_background() # yellow rect, score and timer
                 time_up = self.display_timer()
                 self.word.display_word(self.screen)
