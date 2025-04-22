@@ -16,7 +16,7 @@ def read_file(filename):
 def get_word(lst):
     return lst[random.randint(0, len(lst) - 1)]
 
-wordList = read_file('words.txt')
+wordList = read_file('asset/words.txt')
 
 class TypingGame:
     def __init__ (self):
@@ -44,27 +44,27 @@ class TypingGame:
 
         pygame.init()
         pygame.display.set_caption("Menu")
-        self.icon = pygame.image.load('cat.jpg')
+        self.icon = pygame.image.load('asset/cat.jpg')
         pygame.display.set_icon(self.icon)
         
         # play bg music
         mixer.init()
-        mixer.music.load('meow.mp3')
+        mixer.music.load('asset/meow.mp3')
         mixer.music.set_volume(0.1)
         mixer.music.play(-1) # to loop music infinitely
         
         # typing sound
-        self.button_sound = pygame.mixer.Sound("press_button.mp3")
-        self.key_sound = pygame.mixer.Sound("key_typed.mp3")
+        self.button_sound = pygame.mixer.Sound("asset/press_button.mp3")
+        self.key_sound = pygame.mixer.Sound("asset/key_typed.mp3")
         self.key_sound.set_volume(0.1)
         # buttons
-        self.start_button = Button('start_button.png', 400, 300, 0.5)
-        self.exit_button = Button('exit_button.png', 400, 400, 0.5)
-        self.restart_button = Button('restart_button.png', 400, 300, 0.15)
+        self.start_button = Button('asset/start_button.png', 400, 300, 0.5)
+        self.exit_button = Button('asset/exit_button.png', 400, 400, 0.5)
+        self.restart_button = Button('asset/restart_button.png', 400, 300, 0.15)
         
         # scrolling cat bg
         self.scroll = 0
-        self.cat_bg = pygame.image.load('cats.png').convert_alpha()
+        self.cat_bg = pygame.image.load('asset/cats.png').convert_alpha()
         self.cat_bg_width = self.cat_bg.get_width()
         self.cat_bg_rect = self.cat_bg.get_rect()
     
